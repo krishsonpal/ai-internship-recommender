@@ -1,0 +1,14 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+pydantic
+PyPDF2
+langchain
+langchain-google-genai
+langchain-community
+langchain-huggingface
+faiss-cpu
+tiktoken
+python-multipart
+huggingface-hub
+google-api-core

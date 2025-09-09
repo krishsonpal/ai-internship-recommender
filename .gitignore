@@ -1,0 +1,57 @@
+# Virtual Environment
+sih/
+venv/
+env/
+.env
+
+# Database files
+*.db
+*.sqlite3
+internships.db
+interships.db
+
+# FAISS vector indexes
+faiss_index*/
+student_faiss*/
+faiss_index/
+*.faiss
+*.pkl
+
+# Chat history and data
+data/chat_histories/
+data/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Logs
+*.log
+logs/
+
+# Uploaded files
+*.pdf
+uploads/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Temporary files
+*.tmp
+*.temp
