@@ -29,7 +29,7 @@ source venv/bin/activate
 
 ### 3. Install Dependencies
 ```bash
-pip install -r requirement.txt
+pip install -r requirements.txt
 ```
 
 ### 4. Set Up Environment Variables
@@ -49,6 +49,13 @@ uvicorn main:app --reload
 ```
 
 The API will be available at `http://localhost:8000`
+
+## Deploy
+
+- Use Postgres for `DATABASE_URL` in production
+- Set `CORS_ORIGINS` to your frontend URLs
+- Mount persistent storage for FAISS indexes via `VECTORSTORE_DIR` and `STUDENT_VECTORSTORE_DIR`
+- Start command example: `uvicorn main:app --host 0.0.0.0 --port 8080`
 
 ## API Endpoints
 

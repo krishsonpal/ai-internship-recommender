@@ -12,8 +12,16 @@ load_dotenv()
 os.environ["GOOGLE_API_KEY"] = os.getenv("GOOGLE_API_KEY", "")
 os.environ["HUGGINGFACE_API_TOKEN"] = os.getenv("HUGGINGFACE_API_TOKEN", "")
 
-# Database URL
-DATABASE_URL = "sqlite:///internships.db"
+# Database and deployment-related settings
+# Prefer env-provided DATABASE_URL (e.g., postgres) with a local SQLite fallback for dev
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./internships.db")
+
+# CORS origins (comma-separated). Example: "http://localhost:5173,https://your-frontend.vercel.app"
+CORS_ORIGINS = [o.strip() for o in os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:5173").split(",") if o.strip()]
+
+# Vector store base directories (use volumes in production)
+VECTORSTORE_BASE_DIR = os.getenv("VECTORSTORE_DIR", ".")
+STUDENT_VECTORSTORE_BASE_DIR = os.getenv("STUDENT_VECTORSTORE_DIR", ".")
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)

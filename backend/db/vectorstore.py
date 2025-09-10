@@ -3,11 +3,16 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.schema import Document
 from langchain_community.vectorstores import FAISS
 from db.crud import get_all_internships
-from utils.config import embeddings, embedding_type  # current embeddings and type identifier
+from utils.config import (
+    embeddings,
+    embedding_type,
+    VECTORSTORE_BASE_DIR,
+    STUDENT_VECTORSTORE_BASE_DIR,
+)
 
 # Keep separate FAISS stores per embedding type to avoid dimension mismatch
-VECTORSTORE_PATH = f"faiss_index_{embedding_type}"  # Folder, not .pkl
-STUDENT_VECTORSTORE_DIR = f"student_faiss_{embedding_type}"  # Base folder for per-student FAISS indexes
+VECTORSTORE_PATH = os.path.join(VECTORSTORE_BASE_DIR, f"faiss_index_{embedding_type}")  # Folder, not .pkl
+STUDENT_VECTORSTORE_DIR = os.path.join(STUDENT_VECTORSTORE_BASE_DIR, f"student_faiss_{embedding_type}")  # Base folder for per-student FAISS indexes
 
 def build_vectorstore():
     internships = get_all_internships()
@@ -20,6 +25,8 @@ def build_vectorstore():
     splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
     split_docs = splitter.split_documents(docs)
 
+    # Ensure directory exists
+    os.makedirs(VECTORSTORE_PATH, exist_ok=True)
     vectorstore = FAISS.from_documents(split_docs, embeddings)
     vectorstore.save_local(VECTORSTORE_PATH)  # ✅ Save using FAISS
     print("✅ Vector store built/updated")
