@@ -14,3 +14,5 @@ python-multipart
 huggingface-hub
 google-api-core
 python-dotenv
+passlib[bcrypt]
+python-jose[cryptography]

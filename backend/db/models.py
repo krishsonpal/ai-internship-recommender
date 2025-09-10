@@ -1,8 +1,9 @@
-from sqlalchemy import Column, Integer, String, Text, LargeBinary
+from sqlalchemy import Column, Integer, String, Text, LargeBinary, DateTime
 from db.database import Base
 from sqlalchemy.orm import relationship
 from sqlalchemy import ForeignKey
 import pickle
+from datetime import datetime
 
 class Internship(Base):
     __tablename__ = "internships"
@@ -16,12 +17,26 @@ class Internship(Base):
     duration = Column(String(50))
 
 
-class Student(Base):
-    __tablename__ = "students"
+class User(Base):
+    __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False)
-    email = Column(String, unique=True, index=True)
+    student_id = Column(String(50), unique=True, index=True, nullable=False)
+    email = Column(String(100), unique=True, index=True, nullable=False)
+    password_hash = Column(String(255), nullable=False)
+    name = Column(String(100), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class Company(Base):
+    __tablename__ = "companies"
+
+    id = Column(Integer, primary_key=True, index=True)
+    company_id = Column(String(50), unique=True, index=True, nullable=False)
+    email = Column(String(100), unique=True, index=True, nullable=False)
+    password_hash = Column(String(255), nullable=False)
+    company_name = Column(String(100), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
 
 class ResumeSummary(Base):

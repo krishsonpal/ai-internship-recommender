@@ -2,9 +2,11 @@ from fastapi import APIRouter, UploadFile, Request, HTTPException, Depends
 from sqlalchemy.orm import Session
 from db.database import (get_db, Base, engine)
 from db import crud
+from db.schemas import UserSignup, UserLogin, UserResponse, Token
 from services.resume_parser import extract_text_from_pdf, extract_resume_summary, make_concise_summary
 from db.vectorstore import build_or_update_student_vectorstore
 from utils.config import get_embeddings_with_fallback
+from utils.auth import create_access_token, verify_token
 from services.recommendation import get_internship_recommendations_by_vector
 from services.recommendation import (
     get_internship_recommendations,
@@ -22,6 +24,51 @@ Base.metadata.create_all(bind=engine)
 
 router = APIRouter()
 
+# Authentication routes
+@router.post("/signup", response_model=UserResponse)
+async def signup(user_data: UserSignup, db: Session = Depends(get_db)):
+    """Sign up a new student."""
+    # Check if student_id already exists
+    if crud.get_user_by_student_id(db, user_data.student_id):
+        raise HTTPException(status_code=400, detail="Student ID already registered")
+    
+    # Check if email already exists
+    if crud.get_user_by_email(db, user_data.email):
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # Create user
+    user = crud.create_user(
+        db=db,
+        student_id=user_data.student_id,
+        email=user_data.email,
+        password=user_data.password,
+        name=user_data.name
+    )
+    
+    return UserResponse(
+        student_id=user.student_id,
+        email=user.email,
+        name=user.name
+    )
+
+@router.post("/login", response_model=Token)
+async def login(login_data: UserLogin, db: Session = Depends(get_db)):
+    """Login a student."""
+    user = crud.authenticate_user(db, login_data.student_id, login_data.password)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid student ID or password")
+    
+    # Create access token
+    access_token = create_access_token(
+        data={"sub": user.student_id, "user_type": "student"}
+    )
+    
+    return Token(
+        access_token=access_token,
+        token_type="bearer",
+        user_type="student",
+        user_id=user.student_id
+    )
 
 def _hydrate_session_from_db_if_missing(request: Request, db: Session, student_id: str):
     """Populate session with resume summary and embedding from DB if missing."""
@@ -38,24 +85,6 @@ def _hydrate_session_from_db_if_missing(request: Request, db: Session, student_i
         request.session["resume_embedding"] = [round(float(x), 4) for x in stored.get_embedding()]
         if "chat_query_embeddings" not in request.session:
             request.session["chat_query_embeddings"] = []
-
-
-@router.post("/login")
-async def login(request: Request, student_id: str):
-    request.session["student_id"] = str(student_id)
-    # Attempt to hydrate session from DB so chat works immediately after login
-    try:
-        db: Session = next(get_db())
-        stored = crud.get_resume_summary_with_embedding(db, str(student_id))
-        if stored and stored.get_embedding():
-            concise = make_concise_summary(stored.summary_text, max_chars=800)
-            request.session["resume_summary"] = concise
-            request.session["resume_embedding"] = [round(float(x), 4) for x in stored.get_embedding()]
-            if "chat_query_embeddings" not in request.session:
-                request.session["chat_query_embeddings"] = []
-    except Exception:
-        pass
-    return {"message": "Logged in", "student_id": student_id}
 
 
 @router.get("/session-status")

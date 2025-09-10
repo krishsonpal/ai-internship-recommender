@@ -1,6 +1,7 @@
-from db.models import Internship, ResumeSummary
+from db.models import Internship, ResumeSummary, User, Company
 from db.database import SessionLocal
 from datetime import datetime
+from utils.auth import get_password_hash, verify_password
 
 def add_internship(title, description, skills, location, stipend, duration):
     db = SessionLocal()
@@ -27,6 +28,70 @@ def get_all_internships():
 
 from sqlalchemy.orm import Session
 from . import models
+
+# User authentication functions
+def create_user(db: Session, student_id: str, email: str, password: str, name: str):
+    """Create a new user (student)."""
+    hashed_password = get_password_hash(password)
+    db_user = User(
+        student_id=student_id,
+        email=email,
+        password_hash=hashed_password,
+        name=name
+    )
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+def get_user_by_student_id(db: Session, student_id: str):
+    """Get user by student_id."""
+    return db.query(User).filter(User.student_id == student_id).first()
+
+def get_user_by_email(db: Session, email: str):
+    """Get user by email."""
+    return db.query(User).filter(User.email == email).first()
+
+def authenticate_user(db: Session, student_id: str, password: str):
+    """Authenticate user with student_id and password."""
+    user = get_user_by_student_id(db, student_id)
+    if not user:
+        return False
+    if not verify_password(password, user.password_hash):
+        return False
+    return user
+
+# Company authentication functions
+def create_company(db: Session, company_id: str, email: str, password: str, company_name: str):
+    """Create a new company."""
+    hashed_password = get_password_hash(password)
+    db_company = Company(
+        company_id=company_id,
+        email=email,
+        password_hash=hashed_password,
+        company_name=company_name
+    )
+    db.add(db_company)
+    db.commit()
+    db.refresh(db_company)
+    return db_company
+
+def get_company_by_company_id(db: Session, company_id: str):
+    """Get company by company_id."""
+    return db.query(Company).filter(Company.company_id == company_id).first()
+
+def get_company_by_email(db: Session, email: str):
+    """Get company by email."""
+    return db.query(Company).filter(Company.email == email).first()
+
+def authenticate_company(db: Session, company_id: str, password: str):
+    """Authenticate company with company_id and password."""
+    company = get_company_by_company_id(db, company_id)
+    if not company:
+        return False
+    if not verify_password(password, company.password_hash):
+        return False
+    return company
 
 def save_resume_summary_with_embedding(db: Session, student_id: str, summary_text: str, embedding_vector: list):
     """
