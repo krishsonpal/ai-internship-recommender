@@ -38,3 +38,23 @@ def extract_resume_summary(cv_text: str) -> dict:
     except ResourceExhausted:
         # Fallback: return a naive summary slice to keep flow working
         return {"summary": truncated[:800]}
+
+
+def make_concise_summary(summary_text: str, max_chars: int = 800) -> str:
+    """
+    Compress a verbose summary into a short, precise version suitable for chat context.
+    Target <= max_chars characters.
+    """
+    prompt = f"""
+    Rewrite the following resume summary to be concise and precise (bullet points where helpful),
+    focusing on core skills, domains, and outcomes. Target under {max_chars} characters.
+
+    Summary:
+    {summary_text[:4000]}
+    """
+    try:
+        resp = llm.invoke([HumanMessage(content=prompt)])
+        concise = resp.content.strip()
+        return concise[:max_chars]
+    except Exception:
+        return summary_text[:max_chars]

@@ -12,3 +12,4 @@ tiktoken
 python-multipart
 huggingface-hub
 google-api-core
+python-dotenv
